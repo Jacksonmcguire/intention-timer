@@ -20,21 +20,21 @@ var logActivityButton = document.querySelector('.log-activity');
 var mainTitle = document.querySelector(".main-title")
 var pastActivityList = document.querySelector(".past-activity-list");
 var currentIcon;
-var pastActivities = [];
+var createdActivities = [];
 var createdActivity;
 var inputs = [currentIcon, inputActivity, inputMinutes, inputSeconds];
 
 
-window.addEventListener('load', showPastActivityCards);
+
 categoryContainer.addEventListener("click", displayActivatedIcon);
 buttonStartActivity.addEventListener('click', validateForm);
-buttonLogActivity.addEventListener('click', logActivity)
+buttonLogActivity.addEventListener('click', createCard)
 timerButton.addEventListener('click', startCountdown);
 inputMinutes.addEventListener("keyup", validateNumberMinutes);
 inputSeconds.addEventListener("keyup", validateNumberSeconds);
 form.addEventListener("submit", function() {
   event.preventDefault();
-});
+})
 
 function display(feature) {
   feature.classList.remove("hidden");
@@ -93,6 +93,7 @@ function validateNumberSeconds(){
 };
 
 function displayActivatedIcon() {
+  checkIcons();
   for(var i = 0; i < categoryInputs.length; i++) {
     if(categoryInputs[i].checked) {
       iconActivated[i].classList.toggle('hidden');
@@ -101,6 +102,15 @@ function displayActivatedIcon() {
     };
   };
 };
+
+function checkIcons() {
+  for (var i = 0; i < iconDeactivated.length; i++) {
+    if(!iconDeactivated[i].classList.contains('hidden')) {
+      hide(iconDeactivated[i]);
+      display(iconActivated[i])
+    }
+  }
+}
 
 //refactor this to take out class list add
 function validateForm() {
@@ -114,6 +124,7 @@ function validateForm() {
   else {
     createdActivity = new Activity(currentIcon.id, inputActivity.value, inputMinutes.value, inputSeconds.value);
     // var createdActivity = new Activity(currentIcon.id, inputActivity.value, inputMinutes.value, inputSeconds.value);
+    createdActivities.unshift(createdActivity);
     //we will need to call this method on the start button listener instead
     //need to take displaly funcitonality and move it
     displayTimer();
@@ -165,83 +176,33 @@ function checkErrorMessages() {
 //  </li>
 // </article>
 
-function logActivity() {
-  showCard(createdActivity);
-   var pastActivityCardColor = document.querySelectorAll(".past-activity");
-for (var i = 0; i < pastActivityCardColor.length; i++) {
-   if(createdActivity.category === "meditate") {
-     pastActivityCardColor[i].classList.add("meditate-color");
-   } else if(createdActivity.category === "study") {
-     pastActivityCardColor[i].classList.add("study-color");
-   }else {
-     pastActivityCardColor[i].classList.add("exercise-color")
-   }
- }
-   saveCard();
-  }
-
-function showCard(activity) {
+function createCard() {
   var card = document.createElement("li");
   pastActivityList.appendChild(card);
   card.classList.add("past-activity-card");
   card.innerHTML =
   `<article class="card">
-    <li class="past-activity">
-      <p class="past-activity-category">${activity.category.charAt(0).toUpperCase() + activity.category.slice(1)}</p>
-        <time class="past-activity-time">${activity.minutes} MIN ${activity.seconds} SECONDS</time>
-    </li>
-    <li class="past-activity-description">
-      <p>${activity.description}</p>
-    </li>
+       <li class="past-activity">
+         <p class="past-activity-category">${createdActivity.category.charAt(0).toUpperCase() + createdActivity.category.slice(1)}</p>
+         <time class="past-activity-time">${createdActivity.minutes} MIN ${createdActivity.seconds} SECONDS</time>
+      </li>
+      <li class="past-activity-description">
+        <p>${createdActivity.description}</p>
+      </li>
    </article>`
-  }
-
-function showCardMarkerColor() {
-    for(i = 0; i < pastActivities.length; i++){
-    var pastActivityCardColor = document.querySelectorAll(".past-activity");
-    if(pastActivities[i].category === "meditate") {
-      pastActivityCardColor[i].classList.add("meditate-color");
-    } else if(pastActivities[i].category === "study") {
-      pastActivityCardColor[i].classList.add("study-color");
-    } else {
-      pastActivityCardColor[i].classList.add("exercise-color");      }
+   var pastActivityCardColor = document.querySelector(".past-activity");
+   console.log(pastActivityCardColor);
+   if(createdActivity.category === "meditate") {
+     pastActivityCardColor.classList.add("meditate-color");
+   } else if(createdActivity.category === "study") {
+     pastActivityCardColor.classList.add("study-color");
+   }else {
+     pastActivityCardColor.classList.add("exercise-color")
    }
   }
 
-function saveCard() {
-    createdActivity.saveToStorage();
-  }
-
 function displayMessage() {
-timer.textContent = `YOU DID IT! CONGRATULATIONS ON FINISHING YOUR ${createdActivity.category.toUpperCase()} SESSION!`;
+timer.textContent = `YOU DID IT! CONGRATULATIONS ON FINISHING YOUR ${createdActivities[0].category.toUpperCase()} SESSION!`;
 timer.classList.add('timer-removed');
 display(logActivityButton);
 }
-
-function listPastCards() {
-  for(var i = 0; i < localStorage.length; i++) {
-    var saved = localStorage.getItem("storage " + i);
-    saved = JSON.parse(saved);
-    pastActivities.push(saved);
-  }
-}
-
-function showPastActivityCards() {
-  listPastCards();
-  for(var i = 0; i < localStorage.length; i++) {
-    var card = document.createElement("li");
-    pastActivityList.appendChild(card);
-    card.classList.add("past-activity-card");
-    card.innerHTML =
-    `<article class="card">
-         <li class="past-activity">
-           <p class="past-activity-category">${pastActivities[i].category.charAt(0).toUpperCase() + pastActivities[i].category.slice(1)}</p>
-           <time class="past-activity-time">${pastActivities[i].minutes} MIN ${pastActivities[i].seconds} SECONDS</time>
-        </li>
-        <li class="past-activity-description">
-          <p>${pastActivities[i].description}</p>
-        </li>
-     </article>`
-  }
-  showCardMarkerColor();
- }
